@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kayıt Ol</title>
+  <style>
+    body { font-family: Arial; background: #006699; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    form { background: white; color: black; padding: 30px; border-radius: 10px; width: 300px; }
+    input, button { width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <form action="login.html" onsubmit="return registerUser()">
+    <h2>Kayıt Ol</h2>
+    <input type="text" id="username" placeholder="Kullanıcı Adı" required />
+    <input type="password" id="password" placeholder="Şifre" required />
+    <button type="submit">Kayıt Ol</button>
+    <p>Zaten hesabınız var mı? <a href="login.html">Giriş Yap</a></p>
+  </form>
+
+  <script>
+    function registerUser() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      localStorage.setItem("user", username);
+      localStorage.setItem("pass", password);
+      alert("Kayıt başarılı. Şimdi giriş yapabilirsiniz.");
+      return true;
+    }
+  </script>
+</body>
+</html>

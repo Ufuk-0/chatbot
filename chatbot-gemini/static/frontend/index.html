@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>İzmir Demokrasi Üniversitesi Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #004466, #006699);
+      color: #fff;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 30px 0 10px 0;
+      font-size: 28px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    #container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    #chatSection {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #chatbox {
+      width: 100%;
+      max-width: 700px;
+      background-color: #ffffffcc;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+      color: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #messages {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+
+    .user {
+      background-color: #d0ebff;
+    }
+
+    .bot {
+      background-color: #f1f1f1;
+      border-left: 4px solid #0077aa;
+    }
+
+    #inputArea {
+      display: flex;
+      gap: 10px;
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+
+    #sendButton {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0077aa;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #sendButton:hover {
+      background-color: #005577;
+    }
+
+    #questionList {
+      flex: 1;
+      background-color: #e0f7ff;
+      padding: 20px;
+      color: #000;
+      overflow-y: auto;
+      border-radius: 10px;
+      max-height: 600px;
+    }
+
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .question-item {
+      background-color: white;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .question-item:hover {
+      background-color: #cceeff;
+    }
+
+    @media screen and (max-width: 900px) {
+      #container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #questionList {
+        width: 90%;
+        margin-top: 20px;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>İzmir Demokrasi Üniversitesi Chatbot</h1>
+
+  <div id="container">
+    <div id="chatSection">
+      <div id="chatbox">
+        <div id="messages"></div>
+        <div id="inputArea">
+          <input type="text" id="userInput" placeholder="Bir şeyler yazın..." />
+          <button id="sendButton">Gönder</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="questionList">
+      <div class="question-title">📌 Sık Sorulan Sorular</div>
+      <input type="text" id="searchInput" placeholder="Soru ara..." oninput="filterQuestions()" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc;" />
+      <div id="questionItems">Yükleniyor...</div>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById("messages");
+    const userInput = document.getElementById("userInput");
+    const sendButton = document.getElementById("sendButton");
+
+    function addMessage(text, className) {
+      const div = document.createElement("div");
+      div.className = "message " + className;
+      div.textContent = text;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage(text = null) {
+      const message = text || userInput.value.trim();
+      if (message === "") return;
+
+      addMessage("👤 " + message, "user");
+      userInput.value = "";
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: message }),
+        });
+
+        const data = await response.json();
+        addMessage("🤖 " + data.response, "bot");
+      } catch (error) {
+        addMessage("❌ Hata: Sunucuya ulaşılamıyor.", "bot");
+      }
+    }
+
+    sendButton.addEventListener("click", () => sendMessage());
+    userInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    async function loadQuestions() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/admin/overrides");
+        const data = await res.json();
+        const container = document.getElementById("questionItems");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+          container.innerHTML = "<p>Soru bulunamadı.</p>";
+          return;
+        }
+
+        data.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "question-item";
+          div.textContent = item.question;
+          div.onclick = () => sendMessage(item.question);
+          container.appendChild(div);
+        });
+      } catch (err) {
+        document.getElementById("questionItems").innerHTML = "<p>Veriler yüklenemedi.</p>";
+      }
+    }
+
+    function filterQuestions() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const allItems = document.querySelectorAll(".question-item");
+
+      allItems.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? "block" : "none";
+      });
+    }
+
+    loadQuestions();
+  </script>
+</body>
+</html>

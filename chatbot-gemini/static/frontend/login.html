@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Giriş Yap</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #004466;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    form {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    input, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #registerBtn {
+      background-color: #ccc;
+      color: black;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <form onsubmit="return loginUser()">
+    <h2 style="text-align: center;">Giriş Yap</h2>
+    <input type="text" id="username" placeholder="Kullanıcı Adı" required />
+    <input type="password" id="password" placeholder="Şifre" required />
+    <button type="submit">Giriş</button>
+    <button type="button" id="registerBtn" onclick="window.location.href='register.html'">Kayıt Ol</button>
+  </form>
+
+  <script>
+    function loginUser() {
+      const user = localStorage.getItem("user");
+      const pass = localStorage.getItem("pass");
+      const inputUser = document.getElementById("username").value;
+      const inputPass = document.getElementById("password").value;
+
+      if (inputUser === user && inputPass === pass) {
+        window.location.href = "index.html";
+        return false;
+      } else {
+        alert("Kullanıcı adı veya şifre hatalı.");
+        return false;
+      }
+    }
+  </script>
+</body>
+</html>
